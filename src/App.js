@@ -1,52 +1,38 @@
 import "./App.css";
 import React, { Component } from "react";
 import TodoList from "./Components/TodoList";
+import { connect } from "react-redux";
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
-      todoList: [
-        { todo: "item 1", checked: false },
-        { todo: "item 2", checked: true },
-      ],
-      todo: "",
+      newTodo: "",
     };
     this.changeHandler.bind(this);
-    this.clickHandler.bind(this);
-    this.deleteTodoHandler.bind(this);
-    this.checkTodoHandler.bind(this);
+    this.addTodoHandler.bind(this);
+    this.keyDownHandler.bind(this);
   }
 
   changeHandler = (event) => {
     const { value } = event.target;
-    this.setState({ todo: value });
+    this.setState({ newTodo: value });
   };
 
-  clickHandler = () => {
-    if (this.state.todo !== "")
+  addTodoHandler = () => {
+    if (this.state.newTodo.trim() !== "") {
+      this.props.onAddTodo(this.state.newTodo);
       this.setState({
-        todoList: [...this.state.todoList, this.state.todo],
-        todo: "",
+        newTodo: "",
       });
+    }
   };
 
-  deleteTodoHandler = (index) => {
-    this.setState({
-      todoList: [
-        ...this.state.todoList.slice(0, index),
-        ...this.state.todoList.slice(index + 1),
-      ],
-    });
-  };
-
-  checkTodoHandler = (todoIndex) => {
-    this.setState({
-      todoList: this.state.todoList.map((elem, index) => {
-        if (todoIndex !== index) return elem;
-        return { ...elem, checked: !elem.checked };
-      }),
-    });
+  keyDownHandler = (event) => {
+    const trimmedText = event.target.value.trim();
+    if (event.which === 13 && trimmedText) {
+      this.addTodoHandler();
+    }
   };
 
   render() {
@@ -57,21 +43,36 @@ class App extends Component {
           <input
             type="text"
             id="todo"
-            value={this.state.todo}
+            value={this.state.newTodo}
             onChange={this.changeHandler}
+            onKeyDown={this.keyDownHandler}
           />
-          <button id="submit" onClick={this.clickHandler}>
+          <button id="submit" onClick={this.addTodoHandler}>
             Add
           </button>
         </div>
         <TodoList
-          todoList={this.state.todoList}
-          deleteHandler={this.deleteTodoHandler}
-          checkHandler={this.checkTodoHandler}
+          todoList={this.props.todoList}
+          deleteHandler={this.props.onDeleteTodo}
+          checkHandler={this.props.onCheckTodo}
         />
       </div>
     );
   }
 }
 
-export default App;
+const mapStateToProps = (state) => {
+  return {
+    todoList: state,
+  };
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    onAddTodo: (todo) => dispatch({ type: "ADD_TODO", payload: todo }),
+    onCheckTodo: (id) => dispatch({ type: "CHECK_TODO", payload: id }),
+    onDeleteTodo: (id) => dispatch({ type: "DELETE_TODO", payload: id }),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
