@@ -6,11 +6,16 @@ class App extends Component {
   constructor() {
     super();
     this.state = {
-      todoList: ["item 1", "item 2"],
+      todoList: [
+        { todo: "item 1", checked: false },
+        { todo: "item 2", checked: true },
+      ],
       todo: "",
     };
     this.changeHandler.bind(this);
     this.clickHandler.bind(this);
+    this.deleteTodoHandler.bind(this);
+    this.checkTodoHandler.bind(this);
   }
 
   changeHandler = (event) => {
@@ -24,6 +29,24 @@ class App extends Component {
         todoList: [...this.state.todoList, this.state.todo],
         todo: "",
       });
+  };
+
+  deleteTodoHandler = (index) => {
+    this.setState({
+      todoList: [
+        ...this.state.todoList.slice(0, index),
+        ...this.state.todoList.slice(index + 1),
+      ],
+    });
+  };
+
+  checkTodoHandler = (todoIndex) => {
+    this.setState({
+      todoList: this.state.todoList.map((elem, index) => {
+        if (todoIndex !== index) return elem;
+        return { ...elem, checked: !elem.checked };
+      }),
+    });
   };
 
   render() {
@@ -41,7 +64,11 @@ class App extends Component {
             Add
           </button>
         </div>
-        <TodoList todoList={this.state.todoList} />
+        <TodoList
+          todoList={this.state.todoList}
+          deleteHandler={this.deleteTodoHandler}
+          checkHandler={this.checkTodoHandler}
+        />
       </div>
     );
   }
